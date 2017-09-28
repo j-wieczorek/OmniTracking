@@ -2,6 +2,7 @@
 Kernel Particle Filter implementation for omnidirectional camera based on 'Tracking unknown moving targets on omnidirectional vision' by Y. Shu-Ying, G. WeiMin and Z. Cheng
 
 Required libraries:
+
 	- OpenCV 3.0
 	- Eigen 3.6
 
