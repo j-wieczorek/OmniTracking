@@ -10,62 +10,68 @@ using namespace Eigen;
 
 class KPF
 {
-	int nx;
-	int N;
-	int I;
+	/*!
+		\Brief Class implementing Kernel Particle Filter algorithm. Numbers of equations in brackets
+		refer to article 'Tracking unknown moving targets on omnidirectional vision' by 
+		Yang Shu-Ying, Ge WeiMin and Zhang Cheng
+	*/
 
-	double lambda_0;
-	double lambda_opt;
-	double eta;
+	int nx; ///size of sample vector
+	int N; ///number of particles
+	int I; ///number of iterations for one position
 
-	double sigma;
+	double lambda_opt; ///kernel width (10)
+	double lambda_0;	///0.5 * lambda_opt
+	double eta;			///hyperparameter chosen (in article) emprically to be 0.8 
 
-	int max_a;
-	int max_b;
+	double sigma;	///parameter of Gaussian function for (21)
 
-	int R;
-	int perimeter;
-	Mat image;	
-	Mat omni_image;
+	int max_a;		///maximum value of semi-axis
+	int max_b;		///maximum value of 2nd semi-axis
 
-	Matrix4f At;
-	Matrix4f Ct;
+	int R;			///radius of circle on omnidirectional image
+	int perimeter;	///perimeter of circle on omnidrectional image
 
-	Vector4f e;
-	VectorXf weights;
-	MatrixXf samples;
-	VectorXf previous_weights;
-	MatrixXf previous_samples;
+	Mat image;		///image from camera
+	Mat omni_image;	///unused, to be deleted
 
-	Vector4f x;
+	Matrix4f Ct;	///covariance matrix
+	Matrix4f At;	///Cholesky decomposition of covariance matrix (Table 1, step 3)
+	
 
-	Mat pattern_histogram;
-	vector<Mat> new_histograms;
+	Vector4f e;			///error vector drawn to add perturbation
+	VectorXf weights;	///vector of weights
+	MatrixXf samples;	///matrix of particles (MxN)
+	VectorXf previous_weights;	///vector of previous weights (w_{t-1})
+	MatrixXf previous_samples;	///matrix of previous particles (s_{t-1})
+
+	Vector4f x;			///estimated position of object being tracked
+
+	Mat pattern_histogram;	///histogram of object to track
+	vector<Mat> new_histograms;	///vector of histograms of all particles
 
 
-	Matrix4f covarianceMatrix(MatrixXf X, int N);
+	Matrix4f covarianceMatrix(MatrixXf X, int N);	///method for computing covariance matrix Ct (Table 1, step 2)
 
-	MatrixXf drawSamples();
-	VectorXf initialWeights();
-	Vector4f drawErrorSamples();
+	MatrixXf drawSamples();		///method for drawing initial samples
+	VectorXf initialWeights();	///method for intializing weights (for all i w(i) = 1/N, (4.2.2.))
+	Vector4f drawErrorSamples();///method for drawing error sample
 
-	Vector4f meanShift_sample(int j, double lambda);
-	void meanShift(double lambda);
+	Vector4f meanShift_sample(int j, double lambda);	///meanShift for one sample
+	void meanShift(double lambda);						///performing meanShift on all samples
 
-	Vector4f estimate();
+	Vector4f estimate();								///method for final estimation of object position based on final weights and particles
+	void perturbation();								///method for performing perturbation (Table 1, step 9)
 
-	void perturbation();
-
-	double Klambda(Vector4f x, double lambda);
-	double reweight_sample(int i);
-	void reweight();
+	double Klambda(Vector4f x, double lambda);			//method for computing Gaussian function of vector
+	double reweight_sample(int i);						//reweighting procedure for one sample ((11), (12), (13), (14))
+	void reweight();									//reweighting procedure for all samples
 
 	double kernelRadius();
-	//meanShift again
-	//perturbation again
-	Mat calcHistogram(Mat image);
-	vector<Mat> calcHistograms();
-	double computeBhatcharyyaDistance(Mat query, Mat pattern);
+
+	Mat calcHistogram(Mat image);	//method for computing histogram for a given image
+	vector<Mat> calcHistograms();	//method for computing histograms for all new particles
+	double computeBhatcharyyaDistance(Mat query, Mat pattern);	//method for computing BhatcharyyaDistance between two histograms
 	//reweight again
 
 public:
@@ -73,6 +79,6 @@ public:
 	KPF(int radius, Mat pattern);
 	~KPF();
 
-	Vector4f compute(Mat omni_image, Mat transformed_image);
+	Vector4f compute(Mat omni_image, Mat transformed_image);	//public method enabling user to track the object
 };
 
