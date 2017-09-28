@@ -11,7 +11,6 @@ Author: Davide Scaramuzza - email: davide.scaramuzza@ieee.org
 ------------------------------------------------------------------------------*/
 
 #include "ocam_functions.h"
-//#include "omnivision_tracking.h"
 #include "OpticalFlow.h"
 #include "KPF.h"
 #include <math.h>
@@ -70,21 +69,21 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 }
 int main(int argc, char *argv[])
 {
-	struct ocam_model  o_cata; // our ocam_models for the fisheye and catadioptric cameras
-	get_ocam_model(&o_cata, "./calib_results_catadioptric.txt"); //Read the parameters of the omnidirectional camera from the TXT file 
+	struct ocam_model  o_cata; /// our ocam_models for the fisheye and catadioptric cameras
+	get_ocam_model(&o_cata, "./calib_results_catadioptric.txt"); ///Read the parameters of the omnidirectional camera from the TXT file 
 
 	char key;
 	Mat src2;
 	
 	VideoCapture cap("video2.avi");
-	if (!cap.isOpened()) //check if we succeeded
+	if (!cap.isOpened()) ///check if succeeded
 	{
 		cerr << "Fail to open camera " << endl;
 		return -1;
 	}
 	cap >> src2;
 
-	namedWindow("Click in two corners of object to track");
+	namedWindow("Click in two corners of object to track");	
 	setMouseCallback("Click in two corners of object to track", mouseCallback,NULL);
 	imshow("Click in two corners of object to track", src2);
 	waitKey(0);
@@ -104,7 +103,8 @@ int main(int argc, char *argv[])
 		Mat image_transformed = omni_optical_flow.transformOmniImage(src2);
 
 		Vector4f x_k = kernel_particle_filter.compute(src2, image_transformed);
-		int x = x_k(1)*cos(x_k(0)) + src2.cols / 2;
+		///Transforming coordinates back to cartesian coordinates
+		int x = x_k(1)*cos(x_k(0)) + src2.cols / 2;	
 		int y = x_k(1)*sin(x_k(0)) + src2.rows / 2;
 		ellipse(src2, Point(x, y), Size(x_k(2), x_k(3)), 0.0, 0.0, 360.0, Scalar(0, 0, 255));
 		imshow("Image", src2);
